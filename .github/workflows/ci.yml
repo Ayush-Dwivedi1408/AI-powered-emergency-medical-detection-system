@@ -1,0 +1,66 @@
+name: CI
+
+# Triggers: every push to any branch, and every pull request targeting main.
+# This means the green checkmark shows up on PRs before merging -- which is
+# the whole point. A recruiter who opens your GitHub and sees consistent
+# green CI across PRs reads that as "this person ships quality code."
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-backend:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt pytest
+
+      - name: Run tests
+        working-directory: backend
+        run: python -m pytest --tb=short -v
+
+  build-frontend:
+    name: Frontend build check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:8000
+        run: npm run build

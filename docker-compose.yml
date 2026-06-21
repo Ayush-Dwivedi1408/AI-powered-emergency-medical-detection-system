@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the DB file to the host so patient data persists across
+      # container restarts. Without this, every `docker compose up`
+      # starts with a blank database.
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/emergency.db
+      - API_KEY=${API_KEY:-dev-secret}   # override with a real secret in production
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Tells Vite the backend URL at BUILD TIME so the JS bundle
+        # knows where to send API requests.
+        - VITE_API_URL=http://localhost:8000
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# Single network so services can reach each other by name if needed later
+networks:
+  default:
+    name: emergency-platform
