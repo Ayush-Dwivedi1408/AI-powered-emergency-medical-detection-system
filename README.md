@@ -1,6 +1,6 @@
 # AI-Powered Emergency Decision Support Platform
 
-A backend + React dashboard for logging patient emergency visits, scoring clinical risk with a trained ML model, and assigning triage priority (P1–P4).
+A backend + React dashboard for logging patient emergency visits, scoring clinical risk with a trained ML model, and assigning triage priority (P1–P4)..
 
 ![CI](https://github.com/YOUR_USERNAME/emergency-platform/actions/workflows/ci.yml/badge.svg)
 
